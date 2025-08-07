@@ -26,6 +26,15 @@ public class StringWords {
         }
     }
 
+    /**
+     *
+     * 0.5 SEC
+     * 273 WORDS
+     *
+     * CAN be optimised withh A / I check
+     *
+     *todo --Mistake: optimise substring word taking :)
+     */
     private static boolean wordIsValidBruteForce(String word, String[] allWords){
         int counter = 1;
 //        System.out.println(word);
@@ -47,24 +56,6 @@ public class StringWords {
         return counter >= 8 ;
     }
 
-    private static boolean wordIsValidBruteForce2(String word, String[] allWords){
-        int counter = 1;
-        for (int lettersToRemove = 1; lettersToRemove < word.length(); lettersToRemove++) {
-            int leftSize = word.length() - lettersToRemove;
-            for (int i = 0; i < leftSize; i++) {
-                String wordToCheck = word.substring(i, i+ lettersToRemove);
-                if(Arrays.binarySearch(allWords,wordToCheck) >= 0){
-                    counter++;
-                    // System.out.println(wordToCheck);
-                    break;
-                }
-            }
-            if(counter >= 8){
-                break;
-            }
-        }
-        return counter >= 8 ;
-    }
 
     public static void main(String[] args) {
         //array is already sroted, so binary search
