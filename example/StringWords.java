@@ -100,10 +100,14 @@ public class StringWords {
     public static void main(String[] args) throws IOException {
         String[] allWords = loadAllWords().toArray(new String[0]);
         long start = System.nanoTime();
+
+        int MAX_ACCEPTABLE_WORD_LENGTH = 9;
+        int MIN_ACCEPTABLE_WORD_LENGTH = 2;
+
         Arrays.sort(allWords);
-         List<String> nineLetterWords =  Arrays.stream(allWords).filter(it -> it.length() == 9).toList().stream().sorted().toList(); //List.of("STARTLING");
+         List<String> nineLetterWords =  Arrays.stream(allWords).filter(it -> it.length() == MAX_ACCEPTABLE_WORD_LENGTH).toList().stream().sorted().toList(); //List.of("STARTLING");
          DepthWord.allWordsBetween2and9LettersSet = Arrays.stream(allWords)
-                .filter(it -> it.length() >= 2 && it.length() <= 9)
+                .filter(it -> it.length() >= MIN_ACCEPTABLE_WORD_LENGTH && it.length() <= MAX_ACCEPTABLE_WORD_LENGTH)
                 .collect(Collectors.toSet());
 
         List<String> myWords = nineLetterWords.stream().map(word -> {
@@ -113,7 +117,7 @@ public class StringWords {
                     }
                     return new DepthWord(childWord.stream().filter(Objects::nonNull).max(Comparator.comparingInt(DepthWord::getDepth)).orElse(null), word);
                 })
-                .filter(it -> it.getDepth() == 9)
+                .filter(it -> it.getDepth() == MAX_ACCEPTABLE_WORD_LENGTH)
                 .map(it -> it.word)
                 .toList();
 
