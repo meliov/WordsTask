@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class StringWords {
     /**
@@ -62,24 +61,112 @@ public class StringWords {
         String[] allWords = loadAllWords().toArray(new String[0]);
         long start = System.nanoTime();
         Arrays.sort(allWords);
-         List<String> nineLetterWords = Arrays.stream(allWords).filter(it -> it.length() == 9).toList().stream().sorted().toList(); //List.of("STARLINK");
-         List<String> validWords = new LinkedList<>();
-        for (String word: nineLetterWords) {
-//            System.out.println(word);
-            if(wordIsValidBruteForce(word, allWords)){
-//                System.out.println("found ");
-//                System.out.println(word);
-                validWords.add(word);
-            }
-        }
+         List<String> nineLetterWords =  Arrays.stream(allWords).filter(it -> it.length() == 9).toList().stream().sorted().toList(); //List.of("STARLINK");
+        allWordsBetween2and8Letters = Arrays.stream(allWords)
+                .filter(it -> it.length() >= 1 && it.length() <= 9)
+                .sorted()
+                .toArray(String[]::new);
+
+//        System.out.println(new DepthWord(mapChildren("TROUTLING", 0), "TROUTLING"));
+//        System.out.println(new DepthWord(mapChildren("STARTLING", 0), "STARTLING"));
+//        System.out.println(new DepthWord(mapChildren("STARTLING", 0), "STARTLING").getDepth());
+//        System.out.println(new DepthWord(mapChildren("ABAMPERES", 0), "ABAMPERES"));
+//        System.out.println(new DepthWord(mapChildren("ABAMPERES", 0), "ABAMPERES").getDepth());
+        List<String> myWords = nineLetterWords.stream().map(word -> {
+                    List<DepthWord> childWord = new LinkedList<>();
+                    for (int i = 0; i < word.length(); i++) {
+                        childWord.add(mapChildren(word, i));
+                    }
+                    return new DepthWord(childWord.stream().filter(Objects::nonNull).max(Comparator.comparingInt(DepthWord::getDepth)).orElse(null), word);
+                })
+                .filter(Objects::nonNull)
+                .filter(it -> it.getDepth() == 9)
+                .map(it -> it.word)
+                .toList();
+
+        System.out.println(myWords.size());
+
+//         List<String> validWords = new LinkedList<>();
+//        for (String word: nineLetterWords) {
+////            System.out.println(word);
+//            if(wordIsValidBruteForce(word, allWords)){
+////                System.out.println("found ");
+////                System.out.println(word);
+//                validWords.add(word);
+//            }
+//        }
         System.out.printf("Time taken: %.2f seconds\n", (System.nanoTime() - start) / 1000000000.0);
-        System.out.printf("All Words Found are: %d\n\n", validWords.size());
-        System.out.println();
-        validWords.forEach(System.out::println);
+//        System.out.printf("All Words Found are: %d\n\n", validWords.size());
+//        System.out.println();
+//        validWords.forEach(System.out::println);
 //        for (String word:
 //             loadAllWords()) {
 //            System.out.println(word);
 //        }
     }
+
+
+
+    static class DepthWord{
+        DepthWord childWord;
+        String word;
+//        int depth;
+        public DepthWord(DepthWord childWord, String word) {
+            this.childWord = childWord;
+            this.word = word;
+//            depth = getDepth();
+        }
+
+        public int getDepth(){
+            int depth = 0;
+            DepthWord current = this;
+            while (current != null) {
+                depth++;
+                current = current.childWord;
+            }
+            return depth;
+        }
+
+        @Override
+        public String toString() {
+            return "DepthWord{" +
+                    "childWord=" + childWord +
+                    ", word='" + word + '\'' +
+                    '}';
+        }
+    }
+    private static String[] allWordsBetween2and8Letters;
+
+
+    private static DepthWord mapChildren(String wordValue, int index){
+
+        StringBuilder checkValue = new StringBuilder();
+        for (int i = 0; i < wordValue.length(); i++) {
+            if(i != index){
+                checkValue.append(wordValue.charAt(i));
+            }
+        }
+        if(checkValue.toString().length() == 1){
+            if(checkValue.toString().equals("A") || checkValue.toString().equals("I")){
+                return new DepthWord(null, checkValue.toString());
+            }else{
+                return null;
+            }
+        }
+        if(Arrays.binarySearch(allWordsBetween2and8Letters, checkValue.toString()) >= 0){
+            List<DepthWord> childWord = new LinkedList<>();
+            for (int i = 0; i < checkValue.toString().length(); i++) {
+                childWord.add(mapChildren(checkValue.toString(), i));
+            }
+            return new DepthWord(childWord.stream().filter(Objects::nonNull).max(Comparator.comparingInt(DepthWord::getDepth)).orElse(null), checkValue.toString());
+        }else{
+            if(index == wordValue.length()-1){
+                return null;
+            }
+            return mapChildren(wordValue, ++index);
+        }
+
+    }
+
 
 }
