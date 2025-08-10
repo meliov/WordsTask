@@ -5,37 +5,26 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class StringWords {
-    /**
-     * googled stuff:
-     //https://www.geeksforgeeks.org/java/arrays-binarysearch-java-examples-set-1/
-     //https://stackoverflow.com/questions/692569/how-can-i-count-the-time-it-takes-a-function-to-complete-in-java
-     */
-    private static List<String> loadAllWords() {
-        try {
+    private static List<String> loadAllWords() throws IOException{
             URL wordsUrl = new URL("https://raw.githubusercontent.com/nikiiv/JavaCodingTestOne/master/scrabble-words.txt");
             try (BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(wordsUrl.openConnection().getInputStream()))) {
                 return bufferedReader.lines().skip(2).toList();
             }
-        }catch (IOException ioEx){
-            System.out.printf("ERROR loading words: %s", ioEx.getMessage());
-            System.out.println(Arrays.toString(ioEx.getStackTrace()));
-            throw new RuntimeException(ioEx); // todo add throwing exception after testing is done, this stays for faster testing
-        }
     }
 
-     // with optimisation 1 and 2 - result 775 words for 0.73 seconds
-     //
-    public static void main(String[] args) {
+     // with optimisations 1 and 2 - result 775 words for ~ [0.65 - 0.8] seconds
+
+    public static void main(String[] args) throws IOException {
         String[] allWords = loadAllWords().toArray(new String[0]);
         long start = System.nanoTime();
         Arrays.sort(allWords);
-         List<String> nineLetterWords =  Arrays.stream(allWords).filter(it -> it.length() == 9).toList().stream().sorted().toList(); //List.of("STARLINK");
-        allWordsBetween2and9Letters = Arrays.stream(allWords)
+         List<String> nineLetterWords =  Arrays.stream(allWords).filter(it -> it.length() == 9).toList().stream().sorted().toList(); //List.of("STARTLING");
+        allWordsBetween2and9LettersSet = Arrays.stream(allWords)
                 .filter(it -> it.length() >= 2 && it.length() <= 9)
-                .sorted()
-                .toArray(String[]::new);
+                .collect(Collectors.toSet());
 
         List<String> myWords = nineLetterWords.stream().map(word -> {
                     List<DepthWord> childWord = new LinkedList<>();
@@ -44,7 +33,6 @@ public class StringWords {
                     }
                     return new DepthWord(childWord.stream().filter(Objects::nonNull).max(Comparator.comparingInt(DepthWord::getDepth)).orElse(null), word);
                 })
-                .filter(Objects::nonNull)
                 .filter(it -> it.getDepth() == 9)
                 .map(it -> it.word)
                 .toList();
@@ -55,7 +43,9 @@ public class StringWords {
     }
 
 
-
+    /**
+     * Helper class for easier word in-depth traverse
+     */
     static class DepthWord{
         DepthWord childWord;
         String word;
@@ -82,13 +72,18 @@ public class StringWords {
                     '}';
         }
     }
-    //speed optimisation 1 - binary search
-    private static String[] allWordsBetween2and9Letters;
+
+     //  private static String[] allWordsBetween2and9Letters; - speed of O(log(n)) for binary search
+    //speed optimisation - HashSet - speed O(1) for search
+    private static  Set<String> allWordsBetween2and9LettersSet = new HashSet<>();
+
     //speed optimisation 2 - caching already found words
     private static final Map<String, DepthWord> cache = new HashMap<>();
+
+
     private static DepthWord mapChildren(String wordValue, int index){
 
-        String key = wordValue + "_" + index;
+        String key = wordValue + "#" + index;
         if(cache.containsKey(key)){
             return cache.get(key);
         }
@@ -106,7 +101,7 @@ public class StringWords {
             }else{
                 value = null;
             }
-        }else if(Arrays.binarySearch(allWordsBetween2and9Letters, reducedWord.toString()) >= 0){
+        }else if(allWordsBetween2and9LettersSet.contains(reducedWord.toString())){
             List<DepthWord> childWord = new LinkedList<>();
             for (int i = 0; i < reducedWord.toString().length(); i++) {
                 childWord.add(mapChildren(reducedWord.toString(), i));
