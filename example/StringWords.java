@@ -25,14 +25,15 @@ public class StringWords {
         }
     }
 
-
+     // with optimisation 1 and 2 - result 775 words for 0.73 seconds
+     //
     public static void main(String[] args) {
         String[] allWords = loadAllWords().toArray(new String[0]);
         long start = System.nanoTime();
         Arrays.sort(allWords);
          List<String> nineLetterWords =  Arrays.stream(allWords).filter(it -> it.length() == 9).toList().stream().sorted().toList(); //List.of("STARLINK");
-        allWordsBetween2and8Letters = Arrays.stream(allWords)
-                .filter(it -> it.length() >= 1 && it.length() <= 9)
+        allWordsBetween2and9Letters = Arrays.stream(allWords)
+                .filter(it -> it.length() >= 2 && it.length() <= 9)
                 .sorted()
                 .toArray(String[]::new);
 
@@ -81,9 +82,10 @@ public class StringWords {
                     '}';
         }
     }
-    private static String[] allWordsBetween2and8Letters;
-
-    private static Map<String, DepthWord> cache = new HashMap<>();
+    //speed optimisation 1 - binary search
+    private static String[] allWordsBetween2and9Letters;
+    //speed optimisation 2 - caching already found words
+    private static final Map<String, DepthWord> cache = new HashMap<>();
     private static DepthWord mapChildren(String wordValue, int index){
 
         String key = wordValue + "_" + index;
@@ -104,7 +106,7 @@ public class StringWords {
             }else{
                 value = null;
             }
-        }else if(Arrays.binarySearch(allWordsBetween2and8Letters, reducedWord.toString()) >= 0){
+        }else if(Arrays.binarySearch(allWordsBetween2and9Letters, reducedWord.toString()) >= 0){
             List<DepthWord> childWord = new LinkedList<>();
             for (int i = 0; i < reducedWord.toString().length(); i++) {
                 childWord.add(mapChildren(reducedWord.toString(), i));
