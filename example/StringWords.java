@@ -21,38 +21,8 @@ public class StringWords {
         }catch (IOException ioEx){
             System.out.printf("ERROR loading words: %s", ioEx.getMessage());
             System.out.println(Arrays.toString(ioEx.getStackTrace()));
-            throw new RuntimeException(ioEx); // todo add throwing exception after testing is done, this stays for faster testing 
+            throw new RuntimeException(ioEx); // todo add throwing exception after testing is done, this stays for faster testing
         }
-    }
-
-    /**
-     *
-     * 0.5 SEC
-     * 273 WORDS
-     *
-     * CAN be optimised withh A / I check
-     *
-     *todo --Mistake: optimise substring word taking :)
-     */
-    private static boolean wordIsValidBruteForce(String word, String[] allWords){
-        int counter = 1;
-//        System.out.println(word);
-        for (int lettersToRemove = word.length() - 1; lettersToRemove >= 1; lettersToRemove--) {
-            int leftSize = word.length() - lettersToRemove;
-            for (int i = 0; i < leftSize; i++) {
-              String wordToCheck = word.substring(i, i+ lettersToRemove);
-//                System.out.println(wordToCheck + " ->> " + word);
-              if(Arrays.binarySearch(allWords,wordToCheck) >= 0){
-                  counter++;
-                 // System.out.println(wordToCheck);
-                      break;
-              }
-            }
-            if(counter >= 8){
-                break;
-            }
-        }
-        return counter >= 8 ;
     }
 
 
@@ -86,23 +56,7 @@ public class StringWords {
 
         System.out.println(myWords.size());
 
-//         List<String> validWords = new LinkedList<>();
-//        for (String word: nineLetterWords) {
-////            System.out.println(word);
-//            if(wordIsValidBruteForce(word, allWords)){
-////                System.out.println("found ");
-////                System.out.println(word);
-//                validWords.add(word);
-//            }
-//        }
         System.out.printf("Time taken: %.2f seconds\n", (System.nanoTime() - start) / 1000000000.0);
-//        System.out.printf("All Words Found are: %d\n\n", validWords.size());
-//        System.out.println();
-//        validWords.forEach(System.out::println);
-//        for (String word:
-//             loadAllWords()) {
-//            System.out.println(word);
-//        }
     }
 
 
@@ -137,7 +91,7 @@ public class StringWords {
     }
     private static String[] allWordsBetween2and8Letters;
 
-
+    private static Map<String, DepthWord> memoizedResults = new HashMap<>();
     private static DepthWord mapChildren(String wordValue, int index){
 
         StringBuilder checkValue = new StringBuilder();
