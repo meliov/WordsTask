@@ -27,7 +27,6 @@ public class StringWords {
 
 
     public static void main(String[] args) {
-        //array is already sroted, so binary search
         String[] allWords = loadAllWords().toArray(new String[0]);
         long start = System.nanoTime();
         Arrays.sort(allWords);
@@ -37,11 +36,6 @@ public class StringWords {
                 .sorted()
                 .toArray(String[]::new);
 
-//        System.out.println(new DepthWord(mapChildren("TROUTLING", 0), "TROUTLING"));
-//        System.out.println(new DepthWord(mapChildren("STARTLING", 0), "STARTLING"));
-//        System.out.println(new DepthWord(mapChildren("STARTLING", 0), "STARTLING").getDepth());
-//        System.out.println(new DepthWord(mapChildren("ABAMPERES", 0), "ABAMPERES"));
-//        System.out.println(new DepthWord(mapChildren("ABAMPERES", 0), "ABAMPERES").getDepth());
         List<String> myWords = nineLetterWords.stream().map(word -> {
                     List<DepthWord> childWord = new LinkedList<>();
                     for (int i = 0; i < word.length(); i++) {
@@ -64,11 +58,9 @@ public class StringWords {
     static class DepthWord{
         DepthWord childWord;
         String word;
-//        int depth;
         public DepthWord(DepthWord childWord, String word) {
             this.childWord = childWord;
             this.word = word;
-//            depth = getDepth();
         }
 
         public int getDepth(){
@@ -91,35 +83,44 @@ public class StringWords {
     }
     private static String[] allWordsBetween2and8Letters;
 
-    private static Map<String, DepthWord> memoizedResults = new HashMap<>();
+    private static Map<String, DepthWord> cache = new HashMap<>();
     private static DepthWord mapChildren(String wordValue, int index){
 
-        StringBuilder checkValue = new StringBuilder();
-        for (int i = 0; i < wordValue.length(); i++) {
-            if(i != index){
-                checkValue.append(wordValue.charAt(i));
-            }
-        }
-        if(checkValue.toString().length() == 1){
-            if(checkValue.toString().equals("A") || checkValue.toString().equals("I")){
-                return new DepthWord(null, checkValue.toString());
-            }else{
-                return null;
-            }
-        }
-        if(Arrays.binarySearch(allWordsBetween2and8Letters, checkValue.toString()) >= 0){
-            List<DepthWord> childWord = new LinkedList<>();
-            for (int i = 0; i < checkValue.toString().length(); i++) {
-                childWord.add(mapChildren(checkValue.toString(), i));
-            }
-            return new DepthWord(childWord.stream().filter(Objects::nonNull).max(Comparator.comparingInt(DepthWord::getDepth)).orElse(null), checkValue.toString());
-        }else{
-            if(index == wordValue.length()-1){
-                return null;
-            }
-            return mapChildren(wordValue, ++index);
+        String key = wordValue + "_" + index;
+        if(cache.containsKey(key)){
+            return cache.get(key);
         }
 
+        StringBuilder reducedWord = new StringBuilder();
+        for (int i = 0; i < wordValue.length(); i++) {
+            if(i != index){
+                reducedWord.append(wordValue.charAt(i));
+            }
+        }
+        DepthWord value;
+        if(reducedWord.toString().length() == 1){
+            if(reducedWord.toString().equals("A") || reducedWord.toString().equals("I")){
+                value = new DepthWord(null, reducedWord.toString());
+            }else{
+                value = null;
+            }
+        }else if(Arrays.binarySearch(allWordsBetween2and8Letters, reducedWord.toString()) >= 0){
+            List<DepthWord> childWord = new LinkedList<>();
+            for (int i = 0; i < reducedWord.toString().length(); i++) {
+                childWord.add(mapChildren(reducedWord.toString(), i));
+            }
+            value = new DepthWord(childWord.stream().filter(Objects::nonNull).max(Comparator.comparingInt(DepthWord::getDepth)).orElse(null), reducedWord.toString());
+        }else{
+            if(index == wordValue.length()-1){
+                value = null;
+            }else{
+            value = mapChildren(wordValue, ++index);
+            }
+        }
+
+        cache.put(key, value);
+
+        return value;
     }
 
 
